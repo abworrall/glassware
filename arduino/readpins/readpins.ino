@@ -19,11 +19,11 @@ void loop(void)
   int pin;
   String str;
 
-  Serial.print(str + "Controller:C" + controllerID + " ");
+  Serial.print(str + "Controller:C" + controllerID);
 
   for (pin=0; pin<6; pin++) {
     analogVal[pin] = analogRead(pin);
-    Serial.print(str + "A" + pin + ":" + analogVal[pin] + " ");
+    Serial.print(str + " A" + pin + ":" + analogVal[pin]);
   }
 
   Serial.println("");

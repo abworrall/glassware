@@ -36,7 +36,7 @@ You'll want to setup some kind of dev machine (linux, mac, whatever):
 ## Get and build the glassware software
 
 ```
-# Check out the code, wheren golang toolchain expects to see it
+# Check out the code, where golang toolchain expects to see it
 mkdir -p ~/go/src/github.com/abworrall
 cd  ~/go/src/github.com/abworrall
 git clone https://github.com/abworrall/glassware
