@@ -9,7 +9,7 @@ This project has a few moving pieces:
 - a controller program that runs on a pi, reading the tty from arduino board(s), looking for significant changes
 - music streaming and audio output integration
 
-## Hardware: Bill of Materials
+## Hardware: bill of materials
 
 This was developed to run on the following hardware:
 - raspberry pi (any Pi with networking and USB will do), and a power supply
@@ -21,34 +21,34 @@ This was developed to run on the following hardware:
 - wiring breadboard ([link](https://www.sparkfun.com/products/12002))
 - mounting board for everything ([link](https://www.sparkfun.com/products/11235))
 - some 10Kohm resistors ([link](https://www.adafruit.com/product/2784))
-- some wires([short](https://www.adafruit.com/product/1956) and [long](https://www.adafruit.com/product/1955))
+- some wires ([short](https://www.adafruit.com/product/1956) and [long](https://www.adafruit.com/product/1955))
 - a USB micro-B cable to link each ardino board back to the pi ([link](https://www.sparkfun.com/products/13244))
 
 # Setup
 
 ## Dev machine
 
-You'll want some kind of dev machine (linux, mac, whatever), setup with:
+You'll want to setup some kind of dev machine (linux, mac, whatever):
 - configure SSH client stuff (so you can SSH/SCP to the pi)
 - install the [arduino IDE](https://www.arduino.cc/en/software)
 - install the Go programming language, [golang](https://go.dev/), setting up `$GOPATH`, `~/go`, etc.
 
 ## Get and build the glassware software
 
-TBD, update this to golang/github best practice
+```
+# Check out the code, wheren golang toolchain expects to see it
+mkdir -p ~/go/src/github.com/abworrall
+cd  ~/go/src/github.com/abworrall
+git clone https://github.com/abworrall/glassware
+cd glassware
 
-```cd ~/go
-go get github.com/abworrall/glassware
-cd ./src/github.com/abworrall/glassware
-
-# Compile a binary for local dev machine
+# Compile the command, so you can run it locally
 go build ./cmd/gw
+```
 
-# Cross-compiled a binary you can run on a Pi
+To cross-compile the command for a Raspberry Pi, set a few ENV vars:
+```
 GOOS=linux GOARCH=arm go build ./cmd/gw
-
-# Now you have a `gw` binary - run it locally, or SCP it over to the Pi.
-./gw --help
 ```
 
 ## The Raspberry Pi host
@@ -74,13 +74,14 @@ now run it in verbose mode, to see if it can talk to the arduino
 board, and that the board is sending back the right kind of output
 from `readpins`. It should look like this:
 
-```$ ~/go/src/github.com/abworrall/glassware/gw -v=1
+```
+$ ~/go/src/github.com/abworrall/glassware/gw -v=1
 ... SerialController(C0), read(/dev/ttyUSB0)= "Controller:C0 A0:773 A1:673 A2:586 A3:507 A4:426 A5:383 "
 ... SerialController(C0), read(/dev/ttyUSB0)= "Controller:C0 A0:773 A1:674 A2:589 A3:511 A4:431 A5:388 "
 ... SerialController(C0), read(/dev/ttyUSB0)= "Controller:C0 A0:773 A1:674 A2:588 A3:509 A4:429 A5:384 "
 ```
 
-Any unconnected analog pins will return noisy values, like the example above.
+Any unconnected analog pins will return noisy values.
 
 ## The FSRs
 
@@ -110,5 +111,10 @@ zero. The simplest way to manage this is to insert a quarter coin
 between the object and the FSR, so that all weight goes through the
 quarter.
 
-## Software setup
+## Software setup on the Pi
 
+1. Put `gw` on the Pi, set it up to run on boot
+2. double check perms on the pi, for user access to /dev/ttyUSB0 etc
+3. install mopidy, configure it for Spotify
+4. configure mopidy to talk to your speaker (or use aux out)
+5. on Spotify setup a few playlists (named for sensors: "Glassware C0/A0", etc)
