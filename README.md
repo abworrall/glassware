@@ -2,10 +2,10 @@
 
 A project that lets you setup some physical objects, and trigger
 software events when they change weight - e.g. play a particular
-playlist when a stopped is removed from a bottle.
+playlist when a stopper is removed from a bottle.
 
 This project has a few moving pieces:
-- an ardunio program, which just polls the analog pins and prints values via serial output
+- an ardunio program, which polls the analog pins and prints values via serial output
 - a controller program that runs on a pi, reading the tty from arduino board(s), looking for significant changes
 - music streaming and audio output integration
 
@@ -36,7 +36,7 @@ You'll want to setup some kind of dev machine (linux, mac, whatever):
 ## Get and build the glassware software
 
 ```
-# Check out the code, where golang toolchain expects to see it
+# Check out the code, put it where the golang toolchain expects to see it
 mkdir -p ~/go/src/github.com/abworrall
 cd  ~/go/src/github.com/abworrall
 git clone https://github.com/abworrall/glassware
@@ -57,7 +57,7 @@ GOOS=linux GOARCH=arm go build ./cmd/gw
 - Start the arduino IDE, and open up the arduino sketch file `./arduino/readpins/readpins.ino`.
 - In the IDE, set [tools>board] as `Arduino UNO`, and [tools>port] as `/dev/ttyUSBS0`.
    - If you're using a different flavor of Arduino, or not using Linux, you'll need to figure this bit out yourself.
-- If you're using multiple arduino boards, *make sure* to edit the `readpins` sketch each time, so that each board gets a unique controller ID.
+- If you're using multiple arduino boards, **make sure** to edit the `readpins` sketch each time, so that each board gets a unique controller ID.
 - Click 'upload', to load the sketch into the board.
    - If this works, you'll see the red LED on the board start flashing twice a second.
 
@@ -75,7 +75,7 @@ $ ~/go/src/github.com/abworrall/glassware/gw -v=1
 
 Any unconnected analog pins will return noisy values.
 
-## Ardiuno: FSRs
+## Ardiuno: Force Sensitive Resistors (FSRs)
 
 For each FSR, you should wire it up to an analog pin on the arduino
 (using the breadboard) with a 10Kohm pull-down resistor, as per [this
@@ -85,8 +85,8 @@ applied force increases.
 
 TBD a photo of a setup with two FSRs
 
-Once you have an FSR setup (say, on pin A0), run the `gw -v=1` command
-again, to see the values being reported by the FSR. Squeeze the FSR as
+Once you have an FSR set up (say, on pin `A0`), run the `gw -v=1` command
+again to see the values being reported by the FSR. Squeeze the FSR as
 hard as you can to see the max value, and then play with putting
 different weights on top of it.
 
@@ -99,7 +99,7 @@ reliably is a drop or jump in the right direction.
 They are finicky in another way - the object's base needs to be
 entirely within the sensor. If it is partly outside, then the amount
 of weight borne by the FSR can vary enormously, and perhaps even be
-zero. The simplest way to manage this is to insert a quarter coin
+zero. The simplest way to manage this is to slide a quarter coin
 between the object and the FSR, so that all weight goes through the
 quarter.
 
@@ -131,26 +131,26 @@ From your dev machine, `scp ./gw pi@glasspi:~`, assuming `gw` was
 cross-compiled for ARM as described above, and that your non-root user
 is `pi`.
 
-On the pi, you can test it by just running `~/gw -v` - it should
+On the pi, you can test it by just running `~/gw -v=1`. It should
 connect to the Arduino controller, and start printing out sensor
 readings.
 
-When you're happy it all works, you will want the tool to start on
-boot, so:
-
-TBD, auto-run tool in loop mode
+When you're happy it all works, you will want the tool to start
+automatically on boot up - add something like
+`su abw -c /home/pi/gw > /home/pi/gw.log &`
+to `/etc/rc.local`, or something.
 
 ## Pi: raspotify
 
-This package will turn your Pi into a smart speaker that Spotify will
+This step will turn your Pi into a smart speaker that Spotify will
 stream to, via Spotify Connect.
 
-1. Set up raspotify
+**Set up raspotify**
 
 There is a [raspotify setup
 guide](https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide).
-The 'Easy Way' doesn't work, because PulseAudio. The Hard Way ends up
-needing you to do this, for a Raspbian Pi:
+The 'Easy Way' doesn't work, because PulseAudio. The 'Hard Way' ends up
+needing you to do this, to drive the headphone socket on a Raspbian Pi:
 
 ```
 sudo cat <<EOT >> /etc/asound.conf
@@ -161,9 +161,10 @@ defaults.pcm.dmix.format S16_LE
 EOT
 ```
 
-Test it: `speaker-test -c2 -l1` should generate some nice pink noise.
+Test it: `speaker-test -c2 -l1` should generate some nice pink noise,
+if you've plugged something into the Pi's headphone socket.
 
-2. Use your phone to link your new smart speaker into your Spotify account
+**Use your phone to link your new smart speaker into your Spotify account**
 
 Get your phone, and run the spotify app. Go to [Menu>Devices>Devices
 Menu], and wait a little bit until you see something like `raspotify
@@ -172,31 +173,31 @@ smart speaker destination that your Spotify account can play to, via
 their Spotify Connect API.
 
 This should be a one-time operation, but **you may need to repeat it
-from time to time**, because Spotify Connect seems pretty flakey, and to
-get confused when you use your spotify account to play music on your
+from time to time**, because Spotify Connect seems pretty flakey, and
+gets confused when you use your spotify account to play music on your
 phone or whatever.
 
 ### Pi: spotify login
 
-These steps will authenticate the `gw` tool, and let it use the
+These steps will authenticate the `gw` tool, so that it can use the
 Spotify web API to control streaming to your shiny new Pi-based smart
 speaker.
 
 This is kind of a PITA, but is a one-time setup operation.
 
-1. Create yourself an 'app' on spotify
+**Create yourself an 'app' on spotify**
 - go to https://developer.spotify.com/dashboard/, log in
    - should turn your account into a 'developer account' at some point
 - create a new app (call it 'glassware' or whatever)
 - edit settings, add a redirect URI: `http://localhost:8081/oauth-callback`
 - get the app's `Client ID` and `Client Secret`, cut-n-paste 'em somewhere
 
-2. Log the `gw` tool into spotify
+**Log the `gw` tool into spotify**
 - **The easy way:**
    - do it all on your dev machine, and copy the token over
    - run `gw -spotify-init -spotify-id=DEADBEEF -spotify-secret=DEADBEEF` (but using your ID and Secret)
-   - after logging in, clicking 'agree', and being redirected back, the tool should say something like
-   - ```
+   - log in, click 'agree', get redirected back; then the tool should say something like:
+```
 2022/12/01 14:34:14 Stored the OAuth2 token: /home/abw/.gw/spotify-oauth-token.json
 2022/12/01 14:34:14 Have a spotify client logged in as: Adam
 ```
