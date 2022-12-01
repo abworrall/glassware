@@ -31,10 +31,9 @@ import(
 // six anolog pins reporting values in the range [0,1000].
 type SerialController struct {
 	Config config.Config
-	
 	PortName string                     // e.g. "/dev/ttyUSB0"
 	ControllerID string                 // e.g. "C0" - must be unique & stable over reboots
-	Sensors map[string]sensor.Sensor
+	Sensors map[string]sensor.Sensor    // maps sensor ID (e.g. "A0") to the sensor
 }
 
 func NewSerialController(portName string) Controller {
@@ -82,12 +81,17 @@ func (sc *SerialController)ProcessReadings(str string, eventsOut chan<- event.Ev
 			continue
 		}
 
-		// abw FIXME hack
-		if bits[0] != "A0" { continue }
+		sensorName := sc.ControllerID + "/" + bits[0]
+
+		if _, exists := sc.Config.ActiveSensors[sensorName]; !exists {
+			// unwired analog pins may ghost whatever's happening on the wired ones, and
+			// thus generate ghost events - so skip 'em
+			continue
+		}
 
 		// Autocreate DropRestoreSensors for all keys
 		if _,exists := sc.Sensors[bits[0]]; !exists {
-			sc.Sensors[bits[0]] = sensor.NewDropRestoreSensor(sc.ControllerID + "/" + bits[0])
+			sc.Sensors[bits[0]] = sensor.NewDropRestoreSensor(sensorName)
 		}
 
 		if i, err := strconv.Atoi(bits[1]); err == nil {
@@ -107,6 +111,10 @@ func ListSerialControllers() []string {
 		log.Fatal("No serial ports found!")
 	}
 	for _, port := range ports {
+		if port == "/dev/ttyAMA0" {
+			// AMA0 is a write-only serial port (via TX/RX pins on the Pi) that we don't want
+			continue
+		}
 		ret = append(ret, port)
 	}
 

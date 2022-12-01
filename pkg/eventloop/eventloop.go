@@ -4,6 +4,7 @@ import(
 	"log"
 
 	"github.com/abworrall/glassware/pkg/config"
+	"github.com/abworrall/glassware/pkg/action"
 	"github.com/abworrall/glassware/pkg/controller"
 	"github.com/abworrall/glassware/pkg/event"
 )
@@ -19,20 +20,32 @@ func New(c config.Config) *EventLoop {
 // Run sets up a single channel, then spins off each controller into a
 // goroutine that will publish interesting events onto the channel.
 // Then we just wait on the channel forever.
-func (ev *EventLoop)Run(controllers []controller.Controller) {
+func (el *EventLoop)Run(controllers []controller.Controller) {
 	events := make(chan event.Event, 5)
 
 	for i, _ := range controllers {
-		// Note that the /dev/ttyS0 controller never has output; it all goes to /dev/ttyUSB0
-		go controllers[i].Start(ev.Config, events)
+		go controllers[i].Start(el.Config, events)
 	}
 
 	log.Printf("(main eventloop starting)")
 
 	for {
-		select {
-		case ev := <-events:
-			log.Printf("**** Mainloop event: %s\n", ev)
-		}
+		e := <-events
+		el.DispatchAction(e)
+	}
+}
+
+// DetermineAction inspects the config, and decides which kind of
+// action we need for this event. This is basically driven by which
+// sensor triggered the event, allowing different sensors to do
+// different things.
+// The default is a `Spotify` action, that plays/pauses a playlist.
+func (el *EventLoop)DispatchAction(e event.Event) {
+	a := action.NewSpotifyAction(el.Config)
+
+	log.Printf("Event {%s}, dispatching %s\n", e, a)
+
+	if err := a.ActOnEvent(e); err != nil {
+		log.Printf("Error executing action %s: %s\n", a, err)
 	}
 }

@@ -2,8 +2,7 @@
 
 /* IMPORTANT - if using multiple Arduino boards, each must get
  *  a unique (and stable) ControllerID here. The action config
- *  will be tied to this ID.
- */
+ *  will be tied to this ID. */
 int controllerID = 0;
 
 void setup(void)
@@ -28,8 +27,9 @@ void loop(void)
 
   Serial.println("");
 
+  // Flash the LED, while sleeping for 0.5s
   digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(100);                       // wait for half a second
+  delay(100);
   digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
   delay(400);
 }

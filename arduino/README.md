@@ -9,8 +9,8 @@ to ~1000 at max force.
 
 Note that if a pin has nothing attached to it, it will generate some
 random signal; and when there is a big voltage change on one pin, the
-other pins will follow suit. There isn't a simple way to tell when a
-pin has a real analog signal, vs. when it is unwired.
+other unwired pins will follow suit. There isn't a simple way to tell
+when a pin has a real analog signal, vs. when it is unwired.
 
 Any similar analog circuit should work fine here, as long as it
 generates a similar range of voltages at the analog pin.

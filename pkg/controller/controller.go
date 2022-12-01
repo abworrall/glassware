@@ -6,11 +6,11 @@ import(
 )
 
 type Controller interface {
-	Start(c config.Config, evOut chan<- event.Event) // Once started, the controller will publish events to the chan
+	Start(c config.Config, evOut chan<- event.Event) // All controllers publish events to the chan they're given
 }
 
 // InitControllers will kick off all the controllers the system can
-// find, of all known kinds.
+// find, of all supported kinds.
 func InitControllers() []Controller {
 	ret := []Controller{}
 
