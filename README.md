@@ -147,6 +147,8 @@ stream to, via Spotify Connect.
 
 **Set up raspotify**
 
+Raspotify is a handy packaging of librespot, the spotify connect library.
+
 There is a [raspotify setup
 guide](https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide).
 The 'Easy Way' doesn't work, because PulseAudio. The 'Hard Way' ends up
@@ -164,6 +166,19 @@ EOT
 Test it: `speaker-test -c2 -l1` should generate some nice pink noise,
 if you've plugged something into the Pi's headphone socket.
 
+There is a setting in `/etc/raspotify/conf` you might care about,
+`LIBRESPOT_AUTOPLAY`. If you want silence when your playlist runs out,
+comment this out; else spotify will play an inifinte stream of similar
+songs.
+
+TBH, librespot is a bit flakey with session management, and will
+sometimes lose the session. Longest I've seen it keep an idle session alive is 12 hours.
+
+The `gw` tool will start saying `StartPlayback: could not find device
+'raspotify'`. Only fix I have for this is to restart raspotify, e.g.
+`sudo systemctl restart raspotify`. Maybe should do that every few
+hours via crontab, sigh.
+
 **Use your phone to link your new smart speaker into your Spotify account**
 
 Get your phone, and run the spotify app. Go to [Menu>Devices>Devices
@@ -172,10 +187,7 @@ Menu], and wait a little bit until you see something like `raspotify
 smart speaker destination that your Spotify account can play to, via
 their Spotify Connect API.
 
-This should be a one-time operation, but **you may need to repeat it
-from time to time**, because Spotify Connect seems pretty flakey, and
-gets confused when you use your spotify account to play music on your
-phone or whatever.
+This should be a one-time operation.
 
 ### Pi: spotify login
 
@@ -191,6 +203,7 @@ This is kind of a PITA, but is a one-time setup operation.
 - create a new app (call it 'glassware' or whatever)
 - edit settings, add a redirect URI: `http://localhost:8081/oauth-callback`
 - get the app's `Client ID` and `Client Secret`, cut-n-paste 'em somewhere
+   - these will be cached by the `gw` tool (e.g. `cat ~/.gw/secret`)
 
 **Log the `gw` tool into spotify**
 - **The easy way:**
@@ -201,16 +214,16 @@ This is kind of a PITA, but is a one-time setup operation.
 2022/12/01 14:34:14 Stored the OAuth2 token: /home/abw/.gw/spotify-oauth-token.json
 2022/12/01 14:34:14 Have a spotify client logged in as: Adam
 ```
-   - now copy that token over to your Pi: `scp -r ~/.gw/ pi@glasspi:~/`
-- **The harder way":**
-   - do it directly on the pi
-   - you'll need a monitor/keyboard/mouse attached to your pi
+   - now copy that token/id/secret over to your Pi: `scp -r ~/.gw/ pi@glasspi:~/`
+- **The harder way:**
+   - do it directly on the pi ! you'll need to attach a monitor/mouse/keyboard to it
    - if it is booting into a terminal, start up desktop by running `startx`
    - start a browser, open a terminal window
    - run `gw -spotify-init -spotify-id=DEADBEEF -spotify-secret=DEADBEEF` (but using your ID and Secret)
 
 After this is complete, the `gw` tool can reuse the oauth2 token
-indefinitely.
+indefinitely, as it will cache the `spotify-id` and `spotify-secret`
+values it needs to refresh the token.
 
 ### Pi: bluetooth speakers
 
@@ -222,15 +235,17 @@ and Wifi, e.g. streaming music.
 
 You'll need to figure out how to pair the speaker with the Pi, how to
 reconfigure alsa (`/etc/asound.conf`), and repeat the "Hard Way" steps
-in configuring raspotify.
+in configuring raspotify. Please send me a PR if you figure it out :)
 
 ## Spotify
 
 Now the fun bit - deciding what music will be played when the sensors
-detect weight changes !
+detect things !
 
 Each sensor should get a corresponding playlist. The names are
 predetermined and based on the sensor names, which in turn are based
 on which arduino pins the sensors are connected to. If your sensor is
 wired to pin `A3`, then it will try to play the playlist `Glassware
 C0/A3`.
+
+So create a playlist with that exact name, and add stuff to it.

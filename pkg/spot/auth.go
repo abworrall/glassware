@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -35,6 +36,8 @@ var (
 )
 
 func GetClient(c config.Config, forceNewNewToken bool) *spotify.Client {
+	ctx := context.Background()
+
 	auth := spotifyauth.New(
 		spotifyauth.WithClientID(c.SpotifyId),
 		spotifyauth.WithClientSecret(c.SpotifySecret),
@@ -55,10 +58,20 @@ func GetClient(c config.Config, forceNewNewToken bool) *spotify.Client {
 	}
 
 	// use the token to get an authenticated client
-	client := spotify.New(auth.Client(context.Background(), t))
+	client := spotify.New(auth.Client(ctx, t))
 
-	if user, err := client.CurrentUser(context.Background()); err == nil {
+	// Did we just refresh ? If so, save the new token
+	t2, err := client.Token()
+	if err == nil && t.Expiry != t2.Expiry {
+		log.Printf("    Token was refreshed under the hood, saving\n")
+		saveToken(c.CacheDir, t2)
+	}
+
+	if user, err := client.CurrentUser(ctx); err == nil {
 		log.Printf("    Have a spotify client logged in as: %s\n", user.DisplayName)
+	} else {
+		log.Printf("Spotify client broken with CurrentUser: %s\n\nToken: %#v\n\nClient: %#v\n\n", err, t, client)
+		return nil
 	}
 
 	return client
@@ -105,7 +118,7 @@ func saveToken(cacheDir string, t *oauth2.Token) {
 		log.Fatal(err)
 	}
 
-	log.Printf("    Stored the OAuth2 token: %s\n", filename)
+	log.Printf("    Stored the OAuth2 token: %s (expires in %s, at %s)\n", filename, time.Until(t.Expiry), t.Expiry)
 }
 
 func loadToken(cacheDir string) *oauth2.Token {
@@ -123,8 +136,44 @@ func loadToken(cacheDir string) *oauth2.Token {
 		log.Fatal(err)
 	}
 
-	log.Printf("    Loaded OAuth2 token: %s\n", filename)
+	log.Printf("    Loaded OAuth2 token: %s (expires in %s, at %s)\n", filename, time.Until(t.Expiry), t.Expiry)
 
 	return &t
 }
 
+func StoreCreds(cacheDir, id, secret string) error {
+	saveFile := func(filename, contents string) error {
+		filepath := cacheDir + "/" + filename
+		if err := os.WriteFile(filepath, []byte(contents), 0600); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := saveFile("id", id); err != nil {
+		return err
+	}
+	if err := saveFile("secret", secret); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadCreds(cacheDir string) (string, string, error) {
+	loadFile := func(filename string) (string, error) {
+		filepath := cacheDir + "/" + filename
+		if b, err := os.ReadFile(filepath); err != nil {
+			return "", err
+		} else {
+			return string(b), nil
+		}
+	}
+
+	id, err1 := loadFile("id")
+	secret, err2 := loadFile("secret")
+	if err1 != nil { return "", "", err1 }
+	if err2 != nil { return "", "", err2 }
+
+	return id, secret, nil
+}

@@ -12,8 +12,11 @@ import (
 )
 
 func StartPlayback(c config.Config, playlistNameFrag string) error {
-	client := GetClient(c, false)
 	ctx := context.Background()
+	client := GetClient(c, false)
+	if client == nil {
+		return fmt.Errorf("GetClient failed")
+	}
 
 	d := findPlayer(client, c.SpotifyPlayerDevice)
 	if d == nil {
@@ -24,10 +27,6 @@ func StartPlayback(c config.Config, playlistNameFrag string) error {
 	if pl == nil {
 		return fmt.Errorf("StartPlayback: could not find playlist '%s'", playlistNameFrag)
 	}
-
-	//if err := client.TransferPlayback(ctx, d.ID, true); err != nil {
-	//	return fmt.Errorf("StartPlayback: could not TransferPlayback: %s", err)
-	//}
 
 	opt := spotify.PlayOptions{
 		DeviceID: &d.ID,
@@ -42,8 +41,11 @@ func StartPlayback(c config.Config, playlistNameFrag string) error {
 }
 
 func StopPlayback(c config.Config) error {
-	client := GetClient(c, false)
 	ctx := context.Background()
+	client := GetClient(c, false)
+	if client == nil {
+		return fmt.Errorf("GetClient failed")
+	}
 
 	d := findPlayer(client, c.SpotifyPlayerDevice)
 	if d == nil {

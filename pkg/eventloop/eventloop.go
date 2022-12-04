@@ -21,6 +21,10 @@ func New(c config.Config) *EventLoop {
 // goroutine that will publish interesting events onto the channel.
 // Then we just wait on the channel forever.
 func (el *EventLoop)Run(controllers []controller.Controller) {
+	if len(controllers) == 0 {
+		log.Fatal("No controllers found - is the ardunio board plugged in ?")
+	}
+
 	events := make(chan event.Event, 5)
 
 	for i, _ := range controllers {
