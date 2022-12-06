@@ -59,6 +59,12 @@ func (drs *DropRestoreSensor)ProcessNewReading(val int, evOut chan<- event.Event
 	threshold := recentAvg / 15                // a ~6.6% shift is significant
 	delta := val - recentAvg                   // -ve delta means a drop
 
+	// A wired up sensor, with no weight, will report ~0, and 6% of zero is too small
+	if threshold < 18 {
+		threshold = 18
+	}
+
+	
 	//log.Printf("                                       "+
 	//	"%s: val=%d, delta=% 3d (recent=%d, thresh=%d, isDropped=%v)\n",
 	//	drs.GetName(), val, delta, drs.RecentAverage(), threshold, drs.IsInDropStatus)

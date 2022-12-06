@@ -83,6 +83,7 @@ guide](https://learn.adafruit.com/force-sensitive-resistor-fsr/using-an-fsr).
 Using a pull-down means the voltage signal will increase as the
 applied force increases.
 
+![photo of wiring setup](assets/wiring-pic.jpg)
 TBD a photo of a setup with two FSRs
 
 Once you have an FSR set up (say, on pin `A0`), run the `gw -v=1` command
@@ -137,7 +138,9 @@ readings.
 
 When you're happy it all works, you will want the tool to start
 automatically on boot up - add something like
-`su abw -c /home/pi/gw > /home/pi/gw.log &`
+```
+su pi -c /home/pi/gw > /home/pi/gw.log &
+```
 to `/etc/rc.local`, or something.
 
 ## Pi: raspotify
@@ -168,16 +171,15 @@ if you've plugged something into the Pi's headphone socket.
 
 There is a setting in `/etc/raspotify/conf` you might care about,
 `LIBRESPOT_AUTOPLAY`. If you want silence when your playlist runs out,
-comment this out; else spotify will play an inifinte stream of similar
+comment this out; else spotify will play an infinite stream of similar
 songs.
 
 TBH, librespot is a bit flakey with session management, and will
-sometimes lose the session. Longest I've seen it keep an idle session alive is 12 hours.
-
-The `gw` tool will start saying `StartPlayback: could not find device
-'raspotify'`. Only fix I have for this is to restart raspotify, e.g.
-`sudo systemctl restart raspotify`. Maybe should do that every few
-hours via crontab, sigh.
+sometimes lose the session. Longest I've seen it keep an idle session
+alive is 12 hours. When the session is lost, the `gw` tool will start
+saying `StartPlayback: could not find device 'raspotify'`. Only fix I
+have for this is to restart raspotify, e.g. `sudo systemctl restart
+raspotify`. Maybe should do that every few hours via crontab, sigh.
 
 **Use your phone to link your new smart speaker into your Spotify account**
 
@@ -187,28 +189,26 @@ Menu], and wait a little bit until you see something like `raspotify
 smart speaker destination that your Spotify account can play to, via
 their Spotify Connect API.
 
-This should be a one-time operation.
+This is a one-time operation.
 
-### Pi: spotify login
+## Pi: spotify login
 
 These steps will authenticate the `gw` tool, so that it can use the
 Spotify web API to control streaming to your shiny new Pi-based smart
-speaker.
-
-This is kind of a PITA, but is a one-time setup operation.
+speaker. This is kind of a PITA, but is a one-time setup operation.
 
 **Create yourself an 'app' on spotify**
 - go to https://developer.spotify.com/dashboard/, log in
    - should turn your account into a 'developer account' at some point
 - create a new app (call it 'glassware' or whatever)
-- edit settings, add a redirect URI: `http://localhost:8081/oauth-callback`
+- edit the app's settings, add a redirect URI: `http://localhost:8081/oauth-callback`
 - get the app's `Client ID` and `Client Secret`, cut-n-paste 'em somewhere
    - these will be cached by the `gw` tool (e.g. `cat ~/.gw/secret`)
 
 **Log the `gw` tool into spotify**
 - **The easy way:**
    - do it all on your dev machine, and copy the token over
-   - run `gw -spotify-init -spotify-id=DEADBEEF -spotify-secret=DEADBEEF` (but using your ID and Secret)
+   - run `gw -spotify-init -spotify-id=BADCAB1E -spotify-secret=BADCAB1E` (but using your ID and Secret)
    - log in, click 'agree', get redirected back; then the tool should say something like:
 ```
 2022/12/01 14:34:14 Stored the OAuth2 token: /home/abw/.gw/spotify-oauth-token.json
@@ -219,7 +219,7 @@ This is kind of a PITA, but is a one-time setup operation.
    - do it directly on the pi ! you'll need to attach a monitor/mouse/keyboard to it
    - if it is booting into a terminal, start up desktop by running `startx`
    - start a browser, open a terminal window
-   - run `gw -spotify-init -spotify-id=DEADBEEF -spotify-secret=DEADBEEF` (but using your ID and Secret)
+   - run `gw -spotify-init -spotify-id=BADCAB1E -spotify-secret=BADCAB1E` (but using your ID and Secret)
 
 After this is complete, the `gw` tool can reuse the oauth2 token
 indefinitely, as it will cache the `spotify-id` and `spotify-secret`
@@ -248,4 +248,4 @@ on which arduino pins the sensors are connected to. If your sensor is
 wired to pin `A3`, then it will try to play the playlist `Glassware
 C0/A3`.
 
-So create a playlist with that exact name, and add stuff to it.
+So create a Spotify playlist with that exact name, and add stuff to it.
