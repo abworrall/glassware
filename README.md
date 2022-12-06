@@ -83,8 +83,9 @@ guide](https://learn.adafruit.com/force-sensitive-resistor-fsr/using-an-fsr).
 Using a pull-down means the voltage signal will increase as the
 applied force increases.
 
+This photo shows two FSRs wired up on pins A0 and A1.
+
 ![photo of wiring setup](assets/wiring-pic.jpg)
-TBD a photo of a setup with two FSRs
 
 Once you have an FSR set up (say, on pin `A0`), run the `gw -v=1` command
 again to see the values being reported by the FSR. Squeeze the FSR as
