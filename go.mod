@@ -14,7 +14,7 @@ require (
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )
 
 // replace github.com/zmb3/spotify/v2 v2.3.0 => /home/abw/repo/zmb3/spotify
