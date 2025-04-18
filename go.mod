@@ -1,6 +1,8 @@
 module github.com/abworrall/glassware
 
-go 1.19
+go 1.23.0
+
+toolchain go1.23.4
 
 require (
 	github.com/zmb3/spotify/v2 v2.3.0
@@ -11,8 +13,8 @@ require (
 require (
 	github.com/creack/goselect v0.1.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	golang.org/x/net v0.36.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )
